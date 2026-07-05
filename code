@@ -15,8 +15,6 @@ def get_base64_files():
 
 st.set_page_config(layout="wide")
 
-if "page_actuelle" not in st.session_state:
-    st.session_state.page_actuelle = "Page de présentation"
 
 if "selected_level" not in st.session_state:
     st.session_state.selected_level = 1
@@ -25,14 +23,21 @@ if "nombre_etoiles" not in st.session_state:
     st.session_state.nombre_etoiles = 0
 
 options_pages = ["Page de présentation", "Carte des niveaux", "Niveau en cours"]
-page_actuelle = st.sidebar.radio(label="Navigation", options=options_pages, index=options_pages.index(st.session_state.page_actuelle))
-st.session_state.page_actuelle = page_actuelle
+
+if "page_actuelle" not in st.session_state:
+    st.session_state.page_actuelle = options_pages[0]
+
+selection = st.sidebar.radio("Navigation", options_pages, index=options_pages.index(st.session_state.page_actuelle))
+
+if selection != st.session_state.page_actuelle:
+    st.session_state.page_actuelle = selection
+    st.rerun()
 
 codes_couleurs_niveaux = {"vert": "#34ed69", "jaune": "#e6db1c", "orange": "#fc9423", "rouge": "#fc2332"}
 
 
 
-if page_actuelle == "Page de présentation":
+if st.session_state.page_actuelle == "Page de présentation":
 
     st.markdown("<h1 style='text-align: center; font-size: 40px; margin-top: -60px; margin-bottom: 20px; color: #4287f5; '>Jeu des homophones</h1>", unsafe_allow_html=True)
     st.markdown("<h1 style='text-align: justify; font-size: 18px; font-weight: normal; line-height: 1.5; '>"
@@ -64,7 +69,7 @@ if page_actuelle == "Page de présentation":
 
 
 
-elif page_actuelle == "Carte des niveaux":
+elif st.session_state.page_actuelle == "Carte des niveaux":
     st.markdown("<h1 style='text-align: center; font-size: 40px; margin-top: -60px; margin-bottom: -40px; color: #57ebc3 ;'>Carte des niveaux</h1>", unsafe_allow_html=True)
 
     col1, col2 = st.columns([5.5, 1.5])
@@ -141,7 +146,7 @@ elif page_actuelle == "Carte des niveaux":
 
 
 
-else : #page_actuelle == "Niveau en cours"
+else : #st.session_state.page_actuelle == "Niveau en cours"
 
     niveau_en_cours = st.session_state.selected_level
 
