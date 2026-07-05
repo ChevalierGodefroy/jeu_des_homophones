@@ -96,28 +96,39 @@ elif page_actuelle == "Carte des niveaux":
         return texte_bouton, couleur_fond, codes_couleurs_niveaux[couleur_bordure]
 
 
-    button_clicked = []
+    with stylable_container(key="master_grid",
+                            css_styles=""" div.stButton > button { width: 100% !important; margin-bottom: 20px; padding: 10px 0; aspect-ratio: 1 / 1 !important; height: auto !important; border-radius: 10px !important; display: flex !important; align-items: center !important; justify-content: center !important; transition: 0.2s ease !important; }
+                            div.stButton > button p { font-size: 30px !important; font-weight: 600 !important; color: white !important; margin: 0 !important; }
+                            div.stButton > button:hover { background-color: #5295ff !important; transform: scale(1.05) !important; } """):
 
-    bouton_concerne = 1
-    for rangee in range(3):
+        button_clicked = []
+
+        bouton_concerne = 1
+
         colonnes = st.columns([1.5, 1, 1, 1, 1, 1.5])
-        for i in range(1, 5):
-            with colonnes[i]:
-                texte_bouton, couleur_fond, couleur_bordure = contenu_bouton(bouton_concerne)
 
-                with stylable_container(key=f"container_{bouton_concerne}",
-                                        css_styles=f""" button {{ background-color: {couleur_fond}; color: white; border: 4px solid {couleur_bordure}; transition: 0.2s ease; }}
-                                        div.stButton {{ width: 100%; margin-bottom: 20px}}
-                                        div.stButton > button {{ width: 100%; aspect-ratio: 1 / 1; height: auto; border-radius: 10px; display: flex; align-items: center; justify-content: center; padding : 10px 0; transition: 0.2s ease; }}
-                                        div.stButton > button:hover {{ background-color: #5295ff; transform: scale(1.05); }}
-                                        div.stButton > button p {{ color: white; font-size: 30px !important; font-weight: 600 !important; margin: 0 !important; }}"""):
+        grid = [
+            [1, 5, 9],  # column 1
+            [2, 6, 10],  # column 2
+            [3, 7, 11],  # column 3
+            [4, 8, 12]  # column 4
+        ]
 
-                    if st.button(texte_bouton, key=f"button_{bouton_concerne}", use_container_width=True):
-                        st.session_state.selected_level = bouton_concerne
-                        st.session_state.page_actuelle = "Niveau en cours"
-                        st.rerun()
+        for i in range (4):
+            with colonnes[i+1]:
+                for niveau in grid[i]:
 
-                bouton_concerne += 1
+                    texte_bouton, couleur_fond, couleur_bordure = contenu_bouton(niveau)
+
+                    with stylable_container( key=f"c_{niveau}",
+                                             css_styles=f"button {{ background-color: {couleur_fond} !important; border: 4px solid {couleur_bordure} !important; }}" ):
+
+                        if st.button(texte_bouton, key=f"button_{niveau}", use_container_width=True):
+                            st.session_state.selected_level = niveau
+                            st.session_state.page_actuelle = "Niveau en cours"
+                            st.rerun()
+
+                    bouton_concerne += 1
 
     for index, clicked in enumerate(button_clicked):
         if clicked:
