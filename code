@@ -1,0 +1,158 @@
+import streamlit as st
+from streamlit_extras.stylable_container import stylable_container
+import base64
+import streamlit.components.v1 as components
+
+
+@st.cache_data
+def get_base64_files():
+    with open("Bouton_son_homophones.png", "rb") as f:
+        img = base64.b64encode(f.read()).decode()
+    with open("test_son_python.m4a", "rb") as f:
+        aud = base64.b64encode(f.read()).decode()
+    return img, aud
+
+
+st.set_page_config(layout="wide")
+
+if "page_actuelle" not in st.session_state:
+    st.session_state.page_actuelle = "Page de présentation"
+
+if "selected_level" not in st.session_state:
+    st.session_state.selected_level = 1
+
+if "nombre_etoiles" not in st.session_state:
+    st.session_state.nombre_etoiles = 0
+
+options_pages = ["Page de présentation", "Carte des niveaux", "Niveau en cours"]
+page_actuelle = st.sidebar.radio(label="Navigation", options=options_pages, index=options_pages.index(st.session_state.page_actuelle))
+st.session_state.page_actuelle = page_actuelle
+
+codes_couleurs_niveaux = {"vert": "#34ed69", "jaune": "#e6db1c", "orange": "#fc9423", "rouge": "#fc2332"}
+
+
+
+if page_actuelle == "Page de présentation":
+
+    st.markdown("<h1 style='text-align: center; font-size: 40px; margin-top: -60px; margin-bottom: 20px; color: #4287f5; '>Jeu des homophones</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: justify; font-size: 18px; font-weight: normal; line-height: 1.5; '>"
+                "Bienvenue à ce défi linguistique !<br><br>"
+                "Pour chaque niveau, votre but sera d'identifier les différentes manières d'écrire le son présenté. Avant de commencer, notons deux particularités :<br>"
+                "1. Si un déterminant, un nom ou un adjectif se prononce de la même manière au singulier qu'au pluriel, indiquez seulement la forme singulière."
+                "<br>2. En revanche, pour les verbes, indiquez toutes les conjugaisons qui concordent avec la prononciation. On comprend donc que, dans le cas où un nom pluriel serait l'homographe d'un verbe conjugué, il serait attendu que le mot soit soumis.<br><br>"
+                "Dans chaque niveau, un mot découvert rapporte 3 étoiles. Lors de l'abandon d'un niveau, chaque mot non découvert ne rapporte évidemment aucune étoile. Par ailleurs, à tout moment, aucune pénalité n'accompagne une mauvaise réponse. Les étoiles recueillies permettent d'acheter des indices 💡 ainsi que le trophée 🏆 de fin de jeu. En dépensant 1 étoile, on peut obtenir la définition de l'un des mots manquants d'un niveau. Cependant, une fois trouvé, ce mot ne rapportera plus que 2 étoiles.<br><br>"
+                "Il y a dans le jeu 100 mots à découvrir, et donc au plus 300 étoiles à récolter. Cependant, un joueur identifiant tous les homophones tout en utilisant le nombre théorique maximal d'indices (99) n'en obtiendrait que 102.<br>"
+                "Le trophée de diamant 💎 coûte 295 étoiles ;<br>"
+                "le trophée d'or 🥇 en coûte 280 ;<br>"
+                "le trophée d'argent 🥈 en coûte 250 ;<br>"
+                "le trophée de bronze 🥉 en coûte 200.<br>"
+                "Tâchez donc de faire bon usage de vos précieuses étoiles !<br><br>"
+                "Le bouton suivant vous mènera vers la carte des niveaux. Bonne chance !</h1>", unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([2, 1, 2])
+
+    with col2:
+        st.markdown(""" <style> div.stButton > button {height: auto; padding: 10px !important; margin-top: 20px; background-color: #0a69ff; color: white; border-radius: 10px; border: 4px solid #0046b5; transition : 0.2s ease}
+                    div.stButton > button p { font-size: 30px !important; font-weight: 600; margin: 0 !important; }
+                    div.stButton > button:hover {background-color: #5295ff; transform: scale(1.05)} </style> """, unsafe_allow_html=True)
+
+        vers_page_jeu = st.button("Jouer", use_container_width=True)
+
+        if vers_page_jeu:
+            st.session_state.page_actuelle = "Carte des niveaux"
+            st.rerun()
+
+
+
+elif page_actuelle == "Carte des niveaux":
+    st.markdown("<h1 style='text-align: center; font-size: 40px; margin-top: -60px; margin-bottom: -40px; color: #57ebc3 ;'>Carte des niveaux</h1>", unsafe_allow_html=True)
+
+    col1, col2 = st.columns([5.5, 1.5])
+    with col2:
+        st.markdown(f"<h1 style='text-align: left; font-size: 20px; margin-bottom: 40px; font-weight: 650'>{st.session_state.nombre_etoiles} ⭐</h1>", unsafe_allow_html=True)
+
+    caracteristiques_niveaux = {1: ["vert", "deverrouille", "reussi"], 2: ["vert", "deverrouille", "echoue"], 3: ["vert", "deverrouille", "reussi"], 4: ["jaune", "deverrouille", "reussi"],
+                                5: ["jaune", "deverrouille", "echoue"], 6: ["jaune", "deverrouille", "reussi"], 7: ["orange", "deverrouille", "en cours"], 8: ["orange", "verrouille", "non evalue"],
+                                9: ["orange", "verrouille", "non evalue"], 10: ["rouge", "verrouille", "non evalue"], 11: ["rouge", "verrouille", "non evalue"], 12: ["rouge", "verrouille", "non evalue"]}
+
+    def contenu_bouton(n):
+        couleur_bordure, etat, resultat = caracteristiques_niveaux[n]
+
+        if etat == "verrouille":
+            texte_bouton = "🔒\ufe0f"
+            couleur_fond = "#150ba1"
+
+        elif resultat == "en cours":
+            texte_bouton = f"{n}"
+            couleur_fond = "#b039db"
+
+        else: #etat == "deverrouille" and etal != "en cours"
+            texte_bouton = f"{n}"
+            if resultat == "reussi":
+                couleur_fond = "#7be38c"
+            else: #resultat == "echoue"
+                couleur_fond = "#f24e61"
+
+        return texte_bouton, couleur_fond, codes_couleurs_niveaux[couleur_bordure]
+
+
+    button_clicked = []
+
+    bouton_concerne = 1
+    for rangee in range(3):
+        colonnes = st.columns([1.5, 1, 1, 1, 1, 1.5])
+        for i in range(1, 5):
+            with colonnes[i]:
+                texte_bouton, couleur_fond, couleur_bordure = contenu_bouton(bouton_concerne)
+
+                with stylable_container(key=f"container_{bouton_concerne}",
+                                        css_styles=f""" button {{ background-color: {couleur_fond}; color: white; border: 4px solid {couleur_bordure}; transition: 0.2s ease; }}
+                                        div.stButton {{ width: 100%; margin-bottom: 20px}}
+                                        div.stButton > button {{ width: 100%; aspect-ratio: 1 / 1; height: auto; border-radius: 10px; display: flex; align-items: center; justify-content: center; padding : 10px 0; transition: 0.2s ease; }}
+                                        div.stButton > button:hover {{ background-color: #5295ff; transform: scale(1.05); }}
+                                        div.stButton > button p {{ color: white; font-size: 30px !important; font-weight: 600 !important; margin: 0 !important; }}"""):
+
+                    if st.button(texte_bouton, key=f"button_{bouton_concerne}", use_container_width=True):
+                        st.session_state.selected_level = bouton_concerne
+                        st.session_state.page_actuelle = "Niveau en cours"
+                        st.rerun()
+
+                bouton_concerne += 1
+
+    for index, clicked in enumerate(button_clicked):
+        if clicked:
+            st.write(f"Le bouton {index + 1} a été activé !")
+
+
+
+
+
+
+
+
+else : #page_actuelle == "Niveau en cours"
+
+    niveau_en_cours = st.session_state.selected_level
+
+    couleurs_niveaux = {0: "vert", 1: "jaune", 2: "orange", 3 : "rouge"}
+
+    rang_couleur_niveau_en_cours = (niveau_en_cours - 1) // 3
+    nom_couleur_niveau_en_cours = couleurs_niveaux[rang_couleur_niveau_en_cours]
+    code_couleur_niveau_en_cours = codes_couleurs_niveaux[nom_couleur_niveau_en_cours]
+
+    st.markdown(f"<h1 style='text-align: center; font-size: 40px; margin-top: -60px; margin-bottom: -40px; color: {code_couleur_niveau_en_cours} ;'>Niveau {niveau_en_cours}</h1>", unsafe_allow_html=True)
+
+    col1, col2 = st.columns([5.5, 1.5])
+    with col2:
+        st.markdown(f"<h1 style='text-align: left; font-size: 20px; margin-bottom: 30px; font-weight: 650'>{st.session_state.nombre_etoiles} ⭐</h1>", unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([1, 2, 3])
+
+    with col1:
+        image_b64, audio_b64 = get_base64_files()
+
+        components.html( f""" <style> body {{ margin: 0; padding: 10px; overflow: hidden; display: flex; justify-content: center; align-items: center; }}
+                    #playButton {{ width: 100%; cursor: pointer; transition: transform 0.2s ease; border-radius: 50px; border: 5px solid #0cbb96; backface-visibility: hidden}}
+                    #playButton:hover {{ transform: scale(1.05); opacity: 0.95}} </style>
+                    <div style="display:flex; justify-content:center;"> <img id="playButton" src="data:image/png;base64,{image_b64}" onclick=" const audio = document.getElementById('sound'); audio.pause(); audio.currentTime = 0; audio.play(); " > </div>
+                    <audio id="sound"> <source src="data:audio/mp4;base64,{audio_b64}" type="audio/mp4"> </audio> """, height=500)
